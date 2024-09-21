@@ -1,37 +1,47 @@
-// import Todo from '../models/todos.model.js';
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken';
-import User from '../../src/models/user.model.js';
-import Todo from '../../src/models/todos.model.js';
+import { User } from '../models/user.model.js';
+import { Todo } from '../models/todos.model.js';
 
 
 async function hashPassword(password) {
-    const saltRounds = 10;
+    const saltRounds = 10; 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     return hashedPassword;
 }
 
-
 export const signup = async (req, res) => {
     const { email, password } = req.body;
+
     try {
+        console.log("Checking for existing user...");
         const user = await User.findOne({ email });
+        console.log("User found:", user);
+
         if (!user) {
+            console.log("Hashing password...");
             const hashedpw = await hashPassword(password);
+            console.log("Creating new user...");
             await User.create({ email, password: hashedpw });
-            return res.status(200).json({ message: "User signed up successfully" });
+            return res.status(201).json({ message: "User signed up successfully" });
         } else {
             return res.status(400).json({ message: "User already exists. Please login." });
         }
     } catch (error) {
-        console.error("Error while signing up", error);
-        return res.status(500).json({ message: "Server error" });
+        console.error("Error during signup:", error.message); 
+        return res.status(500).json({ message: "Server error", error: error.message }); // Return the error message in the response for easier debugging
     }
 };
 
 
 export const signin = async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+    }
+
     try {
         const user = await User.findOne({ email });
         if (user) {
@@ -50,69 +60,70 @@ export const signin = async (req, res) => {
             return res.status(400).json({ message: "User not found" });
         }
     } catch (error) {
-        console.error("Error while signing in", error);
         return res.status(500).json({ message: "Server error" });
     }
 };
 
-
 export const getCurrentUser = async (req, res) => {
-    const { _id } = req.params;
+    const { id } = req.user;
+
     try {
-        const user = await User.findById(_id);
+        const user = await User.findById(id);
         if (!user) {
-            return res.status(404).json({ message: "User not found, please login" });
+            return res.status(404).json({ message: "User not found" });
         }
         return res.status(200).json({ email: user.email });
     } catch (error) {
-        console.error("Error while fetching current user", error);
         return res.status(500).json({ message: "Server error" });
     }
 };
 
-
 export const addTodo = async (req, res) => {
-    const { userid, todo, isCompleted } = req.body;
+    const { todo, isCompleted } = req.body;
+    const userIdFromToken = req.user.id;
+
     try {
-        const newTodo = await Todo.create({ userid, todo, isCompleted });
+        const newTodo = await Todo.create({ userid: userIdFromToken, todo, isCompleted });
         return res.status(200).json({ message: "Todo added successfully", todo: newTodo });
     } catch (error) {
-        console.error("Error while adding todo", error);
         return res.status(500).json({ message: "Failed to add todo" });
     }
 };
 
-
 export const deleteTodo = async (req, res) => {
     const { todoid } = req.body;
+    const userIdFromToken = req.user.id;
+
     try {
-        const result = await Todo.findByIdAndDelete(todoid);
-        if (!result) {
-            return res.status(404).json({ message: "Todo not found" });
+        const todo = await Todo.findById(todoid);
+        if (!todo || todo.userid.toString() !== userIdFromToken) {
+            return res.status(404).json({ message: "Todo not found or unauthorized" });
         }
+
+        await Todo.findByIdAndDelete(todoid);
         return res.status(200).json({ message: "Todo deleted successfully" });
     } catch (error) {
-        console.error("Error while deleting todo", error);
         return res.status(500).json({ message: "Failed to delete todo" });
     }
 };
 
-
 export const updateTodo = async (req, res) => {
     const { todoid, todo, isCompleted } = req.body;
+    const userIdFromToken = req.user.id;
+
     try {
-        // Update a specific todo by its ID
+        const existingTodo = await Todo.findById(todoid);
+        if (!existingTodo || existingTodo.userid.toString() !== userIdFromToken) {
+            return res.status(404).json({ message: "Todo not found or unauthorized" });
+        }
+
         const updatedTodo = await Todo.findByIdAndUpdate(
             todoid,
             { todo, isCompleted },
             { new: true }
         );
-        if (!updatedTodo) {
-            return res.status(404).json({ message: "Todo not found" });
-        }
         return res.status(200).json({ message: "Todo updated successfully", todo: updatedTodo });
     } catch (error) {
-        console.error("Error while updating todo", error);
         return res.status(500).json({ message: "Failed to update todo" });
     }
 };
