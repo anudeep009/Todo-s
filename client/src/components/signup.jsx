@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -12,6 +12,7 @@ export default function Signup() {
     password: "",
   });
   const [formError, setFormError] = useState(null);
+  const navigate = useNavigate();
 
   const validateForm = useCallback(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,22 +40,27 @@ export default function Signup() {
 
       try {
         console.log(formData);
-        await axios.post("http://localhost:8080/api/signup", {
+        const response = await axios.post("http://localhost:8080/api/signup", {
           fullname: formData.fullname,
           email: formData.email,
           password: formData.password,
         });
-        toast.success("Signup successful!");
+
+        if (response.status === 201) {
+          toast.success("Signup successful!");
+          setFormError(null);
+          navigate('/signin'); 
+        }
       } catch (error) {
         console.error("Signup error:", error);
         setFormError("An error occurred during signup. Please try again.");
         toast.error("Signup failed. Please try again.");
       } finally {
-        toast.dismiss(loadingToast); // Dismiss loading toast
+        toast.dismiss(loadingToast);
         setIsLoading(false);
       }
     },
-    [formData, validateForm]
+    [formData, validateForm, navigate]
   );
 
   const buttonClasses = useMemo(
@@ -67,7 +73,7 @@ export default function Signup() {
 
   return (
     <div className="bg-gray-900 text-gray-200 min-h-[650px]">
-      <Toaster /> {/* Add this line to render the toaster */}
+      <Toaster />
       <div className="mx-auto max-w-[350px] space-y-6 p-4">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold">Sign Up</h1>

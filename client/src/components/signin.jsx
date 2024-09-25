@@ -1,7 +1,7 @@
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import { useState, useCallback, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Signin() {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,8 +11,8 @@ export default function Signin() {
     password: "",
   });
   const [formError, setFormError] = useState(null);
+  const navigate = useNavigate();
 
-  // Validate form
   const validateForm = useCallback(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -22,7 +22,6 @@ export default function Signin() {
     setFormError(null);
     return true;
   }, [formData.email]);
-
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -34,33 +33,37 @@ export default function Signin() {
       e.preventDefault();
       if (!validateForm()) return;
 
-      const loadingToast = toast.loading("Saving data...", {
-        duration: 1000, 
-      });
-      
+      const loadingToast = toast.loading("Signing in...");
       setIsLoading(true);
 
       try {
-        const response = await axios.post("http://localhost:8080/api/signin", {
-          email: formData.email,
-          password: formData.password,
-        });
-        toast.dismiss(loadingToast);
-        toast.success("Sign in successful");
-        console.log(response.data);
+        const response = await axios.post(
+          "http://localhost:8080/api/signin",
+          {
+            email: formData.email,
+            password: formData.password,
+          },
+          { withCredentials: true } 
+        );
+
+        if (response.status === 200) {
+          toast.dismiss(loadingToast);
+          toast.success("Sign in successful");
+          navigate('/todos');
+        }
       } catch (error) {
         console.error("Signin error:", error);
         toast.dismiss(loadingToast);
-        toast.error("An error occurred during sign-in. Please try again.");
-        setFormError("An error occurred during sign-in. Please try again.");
+        const errorMessage = error.response?.data?.message || "An error occurred during sign-in. Please try again.";
+        toast.error(errorMessage);
+        setFormError(errorMessage); // Display server error if available
       } finally {
         setIsLoading(false);
       }
     },
-    [formData, validateForm]
+    [formData, validateForm, navigate]
   );
 
-  // Memoized button classes to avoid recalculation on every render
   const buttonClasses = useMemo(
     () =>
       `w-full py-2 px-4 font-medium text-white rounded ${
@@ -75,7 +78,7 @@ export default function Signin() {
       <div className="mx-auto max-w-[350px] space-y-6 p-4">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold">Sign In</h1>
-        <p className="text-gray-600">
+          <p className="text-gray-600">
             Not a User?{" "}
             <Link to="/signup" className="text-blue-500">
               Sign Up
@@ -141,16 +144,15 @@ export default function Signin() {
                     r="10"
                     stroke="currentColor"
                     strokeWidth="4"
-                  ></circle>
+                  />
                   <path
                     className="opacity-75"
                     fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  ></path>
+                    d="M4 12a8 8 0 0115.925 2.105A6 6 0 0012 22a6 6 0 000-12c-1.21 0-2.34.391-3.236 1.05A8 8 0 014 12z"
+                  />
                 </svg>
-              ) : (
-                "Sign In"
-              )}
+              ) : null}
+              Sign In
             </button>
           </div>
         </form>

@@ -1,38 +1,65 @@
-export default function Profile() {
-  const user = {
-    name: "example",
-    email: "example@example.com",
-    avatarUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4g_2Qj3LsNR-iqUAFm6ut2EQVcaou4u2YXw&s",
-    todos: {
-      total: 1,
-      completed: 1,
-    },
-  };
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-  // Calculate the completion percentage of todos
-  const completionPercentage = (user.todos.completed / user.todos.total) * 100;
+export default function Profile() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Added error state
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/profile', {
+          withCredentials: true,
+        });
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setError("Failed to load user data. Please try again."); // Set error state
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500">{error}</p>; // Display error message
+  }
+
+  if (!user) {
+    return <p>No user data found.</p>;
+  }
+
+  const totalTodos = user.todos?.total || 0;
+  const completedTodos = user.todos?.completed || 0;
+
+  const completionPercentage =
+    totalTodos > 0 ? (completedTodos / totalTodos) * 100 : 0;
 
   return (
     <div className="bg-gray-900 min-h-[650px] flex justify-center items-center">
       <div className="bg-gray-800 text-gray-200 w-full max-w-md lg:max-w-4xl mx-auto p-6 lg:p-12 rounded-lg">
-        {/* Card Header with Avatar */}
         <div className="p-4 border-b border-gray-700 flex flex-col lg:flex-row items-center gap-4">
           <div className="w-16 h-16 rounded-full overflow-hidden">
-              <img
-                src={user.avatarUrl}
-                alt={user.name}
-                className="object-cover w-full h-full"
-              />
+            <img
+              src={user.avatarUrl || "https://via.placeholder.com/150/0000FF/FFFFFF?text=User"} // More meaningful placeholder
+              alt={user.name}
+              className="object-cover w-full h-full"
+            />
           </div>
           <div className="text-center lg:text-left">
-            <h2 className="text-xl font-semibold">{user.name}</h2>
+            <h2 className="text-xl font-semibold">{user.fullname}</h2>
             <p className="text-sm text-gray-400">{user.email}</p>
           </div>
         </div>
 
-        {/* Card Content */}
         <div className="p-4 space-y-6">
-          {/* Todo Progress */}
           <div>
             <h3 className="text-sm font-medium">Todo Progress</h3>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -43,20 +70,17 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Todo Summary */}
           <div className="flex justify-between text-sm text-center lg:text-left">
             <div>
-              <p className="font-medium">{user.todos.total}</p>
+              <p className="font-medium">{totalTodos}</p>
               <p className="text-gray-400">Total Todos</p>
             </div>
             <div>
-              <p className="font-medium">{user.todos.completed}</p>
+              <p className="font-medium">{completedTodos}</p>
               <p className="text-gray-400">Completed</p>
             </div>
             <div>
-              <p className="font-medium">
-                {user.todos.total - user.todos.completed}
-              </p>
+              <p className="font-medium">{totalTodos - completedTodos}</p>
               <p className="text-gray-400">Remaining</p>
             </div>
           </div>

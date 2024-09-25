@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, CheckSquare } from 'lucide-react';
+import { Menu, X, CheckSquare,User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Header() {
@@ -22,7 +22,9 @@ export default function Header() {
           <nav className="hidden md:flex space-x-4">
             <Link to="/" className="hover:text-green-400">Home</Link>
             <Link to="/todos" className="hover:text-green-400">Todos</Link>
-            <Link to="/profile" className="hover:text-green-400">Profile</Link>
+            <Link to="/profile" className="flex items-center hover:text-green-400">
+            <User className="h-5 w-5 mr-2" /> 
+          </Link>
           </nav>
           <div className="md:hidden">
             <button onClick={toggleMenu} className="text-gray-200 hover:text-green-400">
@@ -40,7 +42,7 @@ export default function Header() {
             Todos
           </Link>
           <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-gray-700 hover:text-green-400">
-            Profile
+            <User className="h-5 w-5" />
           </Link>
         </div>
       </div>
