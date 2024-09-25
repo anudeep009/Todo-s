@@ -1,6 +1,12 @@
 import mongoose, { model, Schema } from "mongoose";
 
 const userSchema = new Schema({
+    fullname : {
+        type:String,
+        requird:true,
+        lowercase:true,
+        trim:true
+    },
     email: {
         type: String,
         required: true,

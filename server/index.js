@@ -1,12 +1,12 @@
 import express from "express";
 import connectDB from "./src/db/index.js";
-import todoRoutes from './src/routes/user.route.js';
+import todoRoutes from './src/routes/user.routes.js';
 import dotenv from "dotenv";
+import cors from 'cors';
 
 dotenv.config();
 const app = express();
-
-
+app.use(cors());
 connectDB();
 
 app.use(express.json());

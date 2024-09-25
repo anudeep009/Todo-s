@@ -4,9 +4,9 @@ import { addTodo, deleteTodo, getCurrentUser, signin, signup, updateTodo } from 
 
 const router = Router();
 
-router.post('/signup',signup);
-router.post('/signin',signin);
-router.post('/current-user',getCurrentUser);
+router.post('/signup', signup);
+router.post('/signin', signin);
+router.get('/currentuser', verifyJWT, getCurrentUser);
 router.post('/todos', verifyJWT, addTodo);
 router.delete('/todos', verifyJWT, deleteTodo);
 router.put('/todos', verifyJWT, updateTodo);

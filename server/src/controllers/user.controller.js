@@ -12,17 +12,13 @@ async function hashPassword(password) {
 }
 
 export const signup = async (req, res) => {
-    const { email, password } = req.body;
+    const { fullname, email, password } = req.body;
 
     try {
-        console.log("Checking for existing user...");
         const user = await User.findOne({ email });
-        console.log("User found:", user);
 
         if (!user) {
-            console.log("Hashing password...");
             const hashedpw = await hashPassword(password);
-            console.log("Creating new user...");
             await User.create({ email, password: hashedpw });
             return res.status(201).json({ message: "User signed up successfully" });
         } else {
@@ -30,7 +26,7 @@ export const signup = async (req, res) => {
         }
     } catch (error) {
         console.error("Error during signup:", error.message); 
-        return res.status(500).json({ message: "Server error", error: error.message }); // Return the error message in the response for easier debugging
+        return res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
@@ -66,6 +62,7 @@ export const signin = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
     const { id } = req.user;
+    console.log(req.user);
 
     try {
         const user = await User.findById(id);
@@ -127,3 +124,7 @@ export const updateTodo = async (req, res) => {
         return res.status(500).json({ message: "Failed to update todo" });
     }
 };
+
+export const getTodos = async (req,res) => {
+    
+}

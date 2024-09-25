@@ -2,7 +2,7 @@ import './App.css'
 import { useState } from 'react'
 import Layout from './Layout'
 import { BrowserRouter as Router,Routes,Route } from 'react-router-dom'
-import { LandingPage,Todos,Profile } from './exports'
+import { LandingPage,Todos,Profile,Signin,Signup } from './exports'
 
 export default function App() {
   return (
@@ -13,6 +13,8 @@ export default function App() {
              <Route index element={<LandingPage />} />
              <Route path='/todos' element={<Todos />} />
              <Route path='/profile' element={<Profile />} />
+             <Route path='/signin' element={<Signin />} />
+             <Route path='/signup' element={<Signup />} />
           </Route>
          </Routes>
       </Router>
