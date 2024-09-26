@@ -4,7 +4,7 @@ import axios from "axios";
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Added error state
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -15,7 +15,7 @@ export default function Profile() {
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
-        setError("Failed to load user data. Please try again."); // Set error state
+        setError("Failed to load user data. Please try again.");
       } finally {
         setLoading(false);
       }

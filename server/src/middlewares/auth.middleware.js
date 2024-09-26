@@ -1,18 +1,16 @@
-import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
 const verifyJWT = (req, res, next) => {
-    const token = req.headers['authorization'];
-    
-    if (!token || !token.startsWith("Bearer ")) {
-        return res.status(403).json({ message: "No token provided or incorrect format" });
+    const token = req.cookies.token;  // Get token from cookies
+
+    if (!token) {
+        return res.status(403).json({ message: "No token provided" });
     }
 
-    const accessToken = token.split(' ')[1];
-
-    jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: "Unauthorized: Invalid token" });
         }
